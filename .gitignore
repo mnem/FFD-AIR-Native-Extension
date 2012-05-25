@@ -7,3 +7,17 @@ bin-release/
 .flexProperties
 .settings/
 .project
+
+#MacOSX bits
+.DS_Store
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Private bits and pieces I wouldn't want to accidentally commit
+*.p12
+.password

@@ -1,4 +1,5 @@
-FFD_First_AIR_Native_Extension
-==============================
+# FFD_First_AIR_Native_Extension
 
-Code used in Flash and Flex Developer's article on creating an AIR Native Extension
+This repository houses all the code use in **ADD TITLE/LINK**.
+
+Grab it and read along with mummy.
