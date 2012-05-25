@@ -21,3 +21,7 @@ bin-release/
 # Private bits and pieces I wouldn't want to accidentally commit
 *.p12
 .password
+*.mobileprovision
+
+# Ignore builds
+*.ipa
