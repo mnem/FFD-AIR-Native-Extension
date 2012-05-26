@@ -94,4 +94,8 @@
 		]]></manifestAdditions>
     </android>
 	<!-- End of the schema for adding the android specific tags in AndroidManifest.xml file -->
+	
+	<extensions>
+        <extensionID>com.noiseandheat.ane.Tweeter</extensionID>
+    </extensions>
 </application>

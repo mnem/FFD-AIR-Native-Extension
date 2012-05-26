@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
+  <includeClasses>
+    <classEntry path="com.noiseandheat.ane.Tweeter"/>
+    <classEntry path="com.noiseandheat.ane.TweeterErrorEvent"/>
+    <classEntry path="com.noiseandheat.ane.TweeterEvent"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>

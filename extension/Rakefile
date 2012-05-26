@@ -1,0 +1,79 @@
+require "rubygems"
+require 'highline/import'
+
+########################################
+# Helper functions
+#
+# Put double quotes around a string
+def quote(string)
+  '"' + string + '"'
+end
+
+# Helper to ask for the password for
+# the self signed certificate
+def get_password
+  # Initially look for a file called '.password' and use
+  # the contents. NOT RECOMMENDED. This is for lazy insecure
+  # people. Like me.
+  password = ''
+  if File.exists? '.password' and File.readable? '.password'
+    File.open '.password' do |file|
+      password = file.gets.strip
+    end
+  else
+    password = ask("AIR self signing key password: ") {|q| q.echo = '*'}
+  end
+
+  return quote password
+end
+
+########################################
+# Constants
+#
+# Locations for Flex tools
+FLEX  = "/Applications/Adobe Flash Builder 4.6/sdks/4.6.0"
+ADT   = quote File.join(FLEX, 'bin/adt')
+MXMLC = quote File.join(FLEX, 'bin/mxmlc')
+
+# Locations shared between tasks
+NATIVE_ROOT       = File.expand_path "native_implementations"
+ACTIONSCRIPT_ROOT = File.expand_path "actionscript_interface"
+ACTIONSCRIPT_SWC  = quote File.expand_path("#{ACTIONSCRIPT_ROOT}/bin/NativeTweeter.swc")
+
+########################################
+# Tasks - where stuff gets built
+desc "Builds the default platform native library"
+task :build_platform_default do
+  platform_root = File.expand_path "#{NATIVE_ROOT}/default"
+  output        = quote File.expand_path("#{platform_root}/library.swf")
+  main_class    = quote File.expand_path("#{platform_root}/src/com/noiseandheat/ane/Tweeter.as")
+
+  puts "Building default platform"
+  `cd #{platform_root};#{MXMLC} -static-link-runtime-shared-libraries=true -o #{output} -library-path+=#{ACTIONSCRIPT_SWC} -source-path+="src" #{main_class}`
+end
+
+desc "Prepares the ios platform native library by copying the latest SWC library.swf file"
+task :prepare_platform_ios do
+  platform_root  = File.expand_path "#{NATIVE_ROOT}/ios"
+
+  puts "Preparing iOS platform"
+  `unzip -o #{ACTIONSCRIPT_SWC} library.swf -d #{platform_root}`
+end
+
+desc "Package AIR Native Extension"
+task :package_ane => [:build_platform_default, :prepare_platform_ios] do
+  output              = quote File.expand_path('NativeTweeter.ane')
+  extension_xml       = quote File.expand_path("#{ACTIONSCRIPT_ROOT}/extension.xml")
+  self_signed_cert    = quote File.expand_path('self_signing_cert.p12')
+  signing_options     = "-storetype pkcs12 -keystore #{self_signed_cert} -storepass #{get_password}"
+  platform_defintions = [
+    "-platform default -C #{quote(NATIVE_ROOT + '/default')} library.swf",
+    "-platform iPhone-ARM -C #{quote(NATIVE_ROOT + '/ios')} library.swf libNativeTweeter.a -platformoptions #{quote(NATIVE_ROOT + '/ios/options.xml')}"
+  ]
+
+  puts "Packaging ANE to #{output}"
+  `#{ADT} -package #{signing_options} -target ane #{output} #{extension_xml} -swc #{ACTIONSCRIPT_SWC} #{platform_defintions.join(' ')}`
+end
+
+desc "Default task run when rake is executed without a specifc task name"
+task :default => [:package_ane]

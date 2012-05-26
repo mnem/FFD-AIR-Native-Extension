@@ -1,5 +1,9 @@
 package
 {
+	import com.noiseandheat.ane.Tweeter;
+	import com.noiseandheat.ane.TweeterErrorEvent;
+	import com.noiseandheat.ane.TweeterEvent;
+	
 	import flash.display.Sprite;
 	import flash.display.Stage;
 	import flash.display.StageAlign;
@@ -9,6 +13,7 @@ package
 	import flash.events.MouseEvent;
 	import flash.events.StageOrientationEvent;
 	import flash.geom.Rectangle;
+	import flash.media.Sound;
 	import flash.utils.getTimer;
 	
 	[SWF(frameRate="60", backgroundColor="#000000")]
@@ -19,12 +24,24 @@ package
 		protected var cpu:Bat;
 		protected var bigball:Ball;
 		
+		// Game sounds
+		[Embed(source="../audio/sounds.swf", symbol="EndSound")]
+		protected const EndSound:Class;
+		protected var endSound:Sound;
+		[Embed(source="../audio/sounds.swf", symbol="PaddleSound")]
+		protected const PaddleSound:Class;
+		protected var paddleSound:Sound;
+		[Embed(source="../audio/sounds.swf", symbol="WallSound")]
+		protected const WallSound:Class;
+		protected var wallSound:Sound;
+		
 		// UI pieces
 		protected var startButton:FlatButton;
 		protected var replayButton:FlatButton;
 		protected var boastButton:FlatButton;
 		protected var score:Score;
 		protected var blocker:Blocker;
+		protected var tweeter:Tweeter;
 		
 		// Game data
 		protected var ballVelocity:Number;
@@ -112,6 +129,15 @@ package
 				.setPosition(gameWidth / 2, gameHeight / 2)
 				.setVelocity(ballVelocity, ballVelocity);
 			
+			// Create the sounds and use a dirty hack to load them
+			// into memory
+			endSound = new EndSound();
+			endSound.play(endSound.length);
+			wallSound = new WallSound();
+			wallSound.play(endSound.length);
+			paddleSound = new PaddleSound();
+			paddleSound.play(endSound.length);
+			
 			addChild(player);
 			addChild(cpu);
 			addChild(bigball);
@@ -144,9 +170,8 @@ package
 			setUIPreGame();
 									
 			blocker = new Blocker()
-				.setMessage("This is where we will show the native tweet dialog")
+				.setMessage("")
 				.setActive(false);
-			blocker.addEventListener(MouseEvent.CLICK, blockerClick);
 
 			addChild(score);
 			addChild(startButton);
@@ -157,6 +182,7 @@ package
 		
 		protected function blockerClick(event:MouseEvent):void
 		{
+			blocker.removeEventListener(MouseEvent.CLICK, blockerClick);
 			blocker.setActive(false);
 			boastButton.setEnabled(false);
 		}
@@ -197,9 +223,44 @@ package
 		protected function boastClicked(button:FlatButton):void
 		{
 			blocker.visible = true;
-			// TODO: show native tweet extension
+			if(Tweeter.isAvailable)
+			{
+				if (tweeter == null)
+				{
+					tweeter = new Tweeter();
+					tweeter.addEventListener(TweeterEvent.COMPLETE, onTweetComplete);
+					tweeter.addEventListener(TweeterEvent.CANCEL, onTweetCancel);
+					tweeter.addEventListener(TweeterErrorEvent.ERROR, onTweetError);
+				}
+				
+				blocker.setMessage("");
+				tweeter.tweet("I scored an astounding " + score.score + " in Paddles! I rock!");
+			}
+			else
+			{
+				blocker.setMessage("Oh dear! Tweeting isn't available!");
+				blocker.addEventListener(MouseEvent.CLICK, blockerClick);
+			}
 		}
-
+		
+		protected function onTweetError(event:TweeterErrorEvent):void
+		{
+			blocker.setMessage("Tweet error: " + event.message);
+			blocker.addEventListener(MouseEvent.CLICK, blockerClick);
+		}
+		
+		protected function onTweetCancel(event:TweeterEvent):void
+		{
+			blocker.setMessage("Tweet cancelled!");
+			blocker.addEventListener(MouseEvent.CLICK, blockerClick);
+		}
+		
+		protected function onTweetComplete(event:TweeterEvent):void
+		{
+			blocker.setMessage("Tweet sent!");
+			blocker.addEventListener(MouseEvent.CLICK, blockerClick);
+		}
+		
 		// Start the game
 		protected function startGame():void
 		{
@@ -227,6 +288,8 @@ package
 			stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
 			
 			bigball.visible = false;
+			
+			endSound.play();
 			
 			setUIPostGame();
 		}
@@ -261,18 +324,22 @@ package
 			var playerRect:Rectangle = player.getBounds(stage);
 			var ballRect:Rectangle = bigball.getBounds(stage);
 			
-			// Paddle collisions
-			if (ballRect.intersects(cpuRect))
+			// Paddle collisions. Yes, the computer cheats.
+			if (ballRect.intersects(cpuRect) || bigball.x > gameWidth)
 			{
-				bigball.vx *= -1;
+				bigball.vx = -ballVelocity;
 				bigball.x = cpuRect.x - (bigball.width / 2);
+				
+				paddleSound.play();
 			}
 			
 			if (ballRect.intersects(playerRect))
 			{
-				bigball.vx *= -1;
+				bigball.vx = ballVelocity;
 				bigball.x = playerRect.right + (bigball.width / 2);
 				score.add();
+				
+				paddleSound.play();
 			}
 			
 			// Boundary collisions
@@ -282,10 +349,12 @@ package
 				
 				if (bigball.y < 0) bigball.y = 0;
 				if (bigball.y > gameHeight) bigball.y = gameHeight;
+				
+				wallSound.play();
 			}
 			
 			// Check game over
-			if (bigball.x < 0 || bigball.x > gameWidth)
+			if (bigball.x < 0)
 			{
 				stopGame();
 			}
