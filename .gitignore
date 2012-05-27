@@ -8,6 +8,7 @@ bin/
 .flexProperties
 .settings/
 .project
+bin-release-temp/
 
 #MacOSX bits
 .DS_Store
