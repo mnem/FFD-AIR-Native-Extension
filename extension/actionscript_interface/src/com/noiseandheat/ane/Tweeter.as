@@ -42,7 +42,7 @@ package com.noiseandheat.ane
 			// ActionScript object. The event data passed
 			// is processed and Tweeter events are dispatched
 			// the the ActionScript code using this extension.
-			context.addEventListener(StatusEvent.STATUS, onStatusEvent);
+			context.addEventListener(StatusEvent.STATUS, onStatusEvent, false, 0, true);
 		}
 		
 		// Static public property indicating if the native extension
@@ -50,7 +50,7 @@ package com.noiseandheat.ane
 		// practice to always include something like this
 		// to allow users of your extension to update the
 		// interface as appropriate
-		public static function get isAvailable():Boolean
+		public static function get isSupported():Boolean
 		{
 			ensureExtensionContextExists();
 

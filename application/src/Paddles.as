@@ -223,7 +223,7 @@ package
 		protected function boastClicked(button:FlatButton):void
 		{
 			blocker.visible = true;
-			if(Tweeter.isAvailable)
+			if(Tweeter.isSupported)
 			{
 				if (tweeter == null)
 				{

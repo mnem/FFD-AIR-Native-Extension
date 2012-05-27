@@ -13,7 +13,7 @@ package com.noiseandheat.ane
 
 		// For the default platform it is generally good practice
 		// to indicate that the native features aren't available.
-		public static function get isAvailable():Boolean
+		public static function get isSupported():Boolean
 		{
 			return false;
 		}
