@@ -97,11 +97,6 @@ FREObject NAH_Tweeter_tweet(FREContext context, void *functionData, uint32_t arg
         {
             FREDispatchStatusEventAsync(context, IE_CANCELLED, EMPTY_STRING);
         }
-        // Bit of a hack to fix orientation issues. See:
-        //    http://forums.adobe.com/message/4324317
-        [[NSNotificationCenter defaultCenter] postNotificationName:UIDeviceOrientationDidChangeNotification 
-                                                            object:nil];
-        
         UIViewController *vc = [[[UIApplication sharedApplication] keyWindow] rootViewController];
         [vc dismissModalViewControllerAnimated:YES];
     };
