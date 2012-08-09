@@ -1,5 +1,3 @@
 # FFD_First_AIR_Native_Extension
 
-This repository houses all the code use in **ADD TITLE/LINK**.
-
-Grab it and read along with mummy.
+This repository houses all the code used in the article, "Writing your first AIR Native Extension".
